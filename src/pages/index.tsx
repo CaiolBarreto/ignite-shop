@@ -8,6 +8,7 @@ import { HomeContainer, Product } from "~/styles/pages/home";
 
 import 'keen-slider/keen-slider.min.css'
 import Link from "next/link";
+import Head from "next/head";
 
 interface HomeProps {
   products: {
@@ -27,22 +28,28 @@ export default function Home({ products }: HomeProps) {
   })
 
   return (
-    <HomeContainer ref={sliderRef} className="keen-slider" >
-      {products.map(product => {
-        return (
-          <Link key={product.id} href={`/product/${product.id}`} prefetch={false}>
-            <Product className="keen-slider__slide">
-              <Image src={product.imageUrl} alt="" width={500} height={500} />
-              <footer>
-                <strong>{product.name}</strong>
-                <span>{product.price}</span>
-              </footer>
-            </Product>
-          </Link>
-        )
-      })}
+    <>
+      <Head>
+        <title>Ignite Shop</title>
+      </Head>
 
-    </HomeContainer>
+      <HomeContainer ref={sliderRef} className="keen-slider" >
+        {products.map(product => {
+          return (
+            <Link key={product.id} href={`/product/${product.id}`} prefetch={false}>
+              <Product className="keen-slider__slide">
+                <Image src={product.imageUrl} alt="" width={500} height={500} />
+                <footer>
+                  <strong>{product.name}</strong>
+                  <span>{product.price}</span>
+                </footer>
+              </Product>
+            </Link>
+          )
+        })}
+
+      </HomeContainer>
+    </>
   );
 }
 
@@ -55,7 +62,7 @@ export const getStaticProps: GetStaticProps = async () => {
     const price = product.default_price as Stripe.Price;
     const unitAmount = (price.unit_amount as number) / 100;
 
-    const formatedValue = new Intl.NumberFormat('pt-BR', {
+    const formattedValue = new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
     }).format(unitAmount)
@@ -64,7 +71,7 @@ export const getStaticProps: GetStaticProps = async () => {
       id: product.id,
       name: product.name,
       imageUrl: product.images[0],
-      price: formatedValue
+      price: formattedValue
     }
   })
 

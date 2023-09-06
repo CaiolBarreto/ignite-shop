@@ -2,8 +2,10 @@ import { GetStaticPaths, type GetStaticProps } from "next"
 import { stripe } from "~/lib/stripe";
 
 import { ImageContainer, ProductContainer, ProductDetails } from "~/styles/pages/product"
-import type Stripe from "stripe";
 import Image from "next/image";
+import axios from "axios";
+import { useState } from "react";
+import Head from "next/head";
 
 interface ProductProps {
   product: {
@@ -17,24 +19,45 @@ interface ProductProps {
 }
 
 export default function Product({ product }: ProductProps) {
+  const [isRedirectingToCheckout, setIsRedirectingToCheckout] = useState(false)
+
+  async function handleBuyProduct() {
+    try {
+      setIsRedirectingToCheckout(true)
+
+      const response = await axios.post('/api/checkout', {
+        priceId: product.defaultPriceId
+      })
+
+      const { checkoutUrl } = response.data
+
+      window.location.href = checkoutUrl
+    } catch (err) {
+      setIsRedirectingToCheckout(false)
+      console.error(err)
+    }
+  }
+
   return (
-    <ProductContainer>
-      <ImageContainer>
-        <Image src={product.imageUrl} height={480} width={520} alt="product_image"/>
-      </ImageContainer>
+    <>
+      <Head>
+        <title>{product.name}</title>
+      </Head>
 
-      <ProductDetails>
-        <h1>{product.name}</h1>
-
-        <span>{product.price}</span>
-
-        <p>{product.description}</p>
-
-        <button onClick={() => console.log(product.defaultPriceId)}>
-          Buy now
-        </button>
-      </ProductDetails>
-    </ProductContainer>
+      <ProductContainer>
+        <ImageContainer>
+          <Image src={product.imageUrl} height={480} width={520} alt="product_image"/>
+        </ImageContainer>
+        <ProductDetails>
+          <h1>{product.name}</h1>
+          <span>{product.price}</span>
+          <p>{product.description}</p>
+          <button disabled={isRedirectingToCheckout} onClick={handleBuyProduct}>
+            Buy now
+          </button>
+        </ProductDetails>
+      </ProductContainer>
+    </>
   )
 }
 
